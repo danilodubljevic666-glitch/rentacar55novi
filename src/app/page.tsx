@@ -237,7 +237,7 @@ export default function Home() {
               <h1 className="hero-t2 text-4xl font-bold leading-[1.05] tracking-tight text-amber-400 sm:text-5xl lg:text-6xl xl:text-7xl">Rent a Car 55.</h1>
             </div>
             <p className="hero-desc max-w-lg text-base leading-relaxed text-zinc-300 sm:text-lg">
-              Širok izbor vozila u Nikšiću po pristupačnim cijenama. Brza rezervacija, fleksibilno preuzimanje i podrška 24/7.
+              Iznajmite auto u Nikšiću po pristupačnim cijenama. Brza online rezervacija, fleksibilno preuzimanje i podrška 24/7 — Rent a Car 55, Crna Gora.
             </p>
             <div className="hero-stats flex items-center gap-5 sm:gap-8">
               {([
@@ -333,7 +333,7 @@ export default function Home() {
               <span className="shimmer-text inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.3em]">
                 Naša vozila
               </span>
-              <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl lg:text-4xl">Izaberite svoje vozilo</h2>
+              <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl lg:text-4xl">Iznajmite vozilo u Nikšiću</h2>
             </div>
             <p className="max-w-sm text-sm leading-6 text-zinc-500">
               Brzo, jednostavno, bez čekanja. Izaberite i rezervišite odmah.
