@@ -244,46 +244,42 @@ export default function AdminPage() {
                     </div>
 
                     {/* Actions */}
-                    {r.status !== "completed" && r.status !== "cancelled" && (
-                      <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-900 pt-4">
-                        {r.status === "pending" && (
-                          <button
-                            onClick={() => updateStatus(r.id, "confirmed")}
-                            disabled={updating === r.id}
-                            className="rounded-xl bg-emerald-500/10 px-4 py-2 text-xs font-medium text-emerald-400 transition hover:bg-emerald-500/20 disabled:opacity-50"
-                          >
-                            Potvrdi rezervaciju
-                          </button>
-                        )}
-                        {r.status === "confirmed" && (
-                          <>
-                            <button
-                              onClick={() => updateStatus(r.id, "completed")}
-                              disabled={updating === r.id}
-                              className="rounded-xl bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-zinc-700 disabled:opacity-50"
-                            >
-                              Označi kao završeno
-                            </button>
-                            <button
-                              onClick={() => deleteReservation(r.id)}
-                              disabled={updating === r.id}
-                              className="rounded-xl bg-red-500/10 px-4 py-2 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
-                            >
-                              Izbriši
-                            </button>
-                          </>
-                        )}
-                        {r.status === "pending" && (
-                          <button
-                            onClick={() => updateStatus(r.id, "cancelled")}
-                            disabled={updating === r.id}
-                            className="rounded-xl bg-red-500/10 px-4 py-2 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
-                          >
-                            Otkaži
-                          </button>
-                        )}
-                      </div>
-                    )}
+                    <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-900 pt-4">
+                      {r.status === "pending" && (
+                        <button
+                          onClick={() => updateStatus(r.id, "confirmed")}
+                          disabled={updating === r.id}
+                          className="rounded-xl bg-emerald-500/10 px-4 py-2 text-xs font-medium text-emerald-400 transition hover:bg-emerald-500/20 disabled:opacity-50"
+                        >
+                          Potvrdi rezervaciju
+                        </button>
+                      )}
+                      {r.status === "confirmed" && (
+                        <button
+                          onClick={() => updateStatus(r.id, "completed")}
+                          disabled={updating === r.id}
+                          className="rounded-xl bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-zinc-700 disabled:opacity-50"
+                        >
+                          Označi kao završeno
+                        </button>
+                      )}
+                      {r.status === "pending" && (
+                        <button
+                          onClick={() => updateStatus(r.id, "cancelled")}
+                          disabled={updating === r.id}
+                          className="rounded-xl bg-amber-500/10 px-4 py-2 text-xs font-medium text-amber-400 transition hover:bg-amber-500/20 disabled:opacity-50"
+                        >
+                          Otkaži
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteReservation(r.id)}
+                        disabled={updating === r.id}
+                        className="rounded-xl bg-red-500/10 px-4 py-2 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                      >
+                        Izbriši
+                      </button>
+                    </div>
                   </div>
                 </article>
               );
