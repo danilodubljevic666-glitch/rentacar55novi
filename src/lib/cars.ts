@@ -1,0 +1,133 @@
+export type Car = {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  price: number;
+  seats: number;
+  transmission: string;
+  fuel: string;
+};
+
+export const cars: Car[] = [
+  {
+    id: "citroen-c3",
+    name: "Citroen C3",
+    description: "Vrhunski luksuz i udobnost za najzahtjevnije klijente.",
+    image: "https://rentacar55.vercel.app/assets/citroen%20c3%20white-CONRvaUj.jpg",
+    price: 39.99,
+    seats: 5,
+    transmission: "Manuelni",
+    fuel: "Dizel",
+  },
+  {
+    id: "citroen-c4",
+    name: "Citroen C4",
+    description: "Elegantno i sofisticirano vozilo za poslovne i privatne vožnje.",
+    image: "https://rentacar55.vercel.app/assets/citroenc4-Bohk81DO.jpg",
+    price: 49.99,
+    seats: 5,
+    transmission: "Manuelni",
+    fuel: "Dizel",
+  },
+  {
+    id: "peugeot-308",
+    name: "Peugeot 308",
+    description: "Savršena kombinacija komfora i štedljivosti.",
+    image: "https://rentacar55.vercel.app/assets/pezo-C3WJ0oP_.jpg",
+    price: 29.99,
+    seats: 5,
+    transmission: "Manuelni",
+    fuel: "Dizel",
+  },
+  {
+    id: "renault-scenic",
+    name: "Renault Scenic",
+    description: "Prostran i siguran izbor za porodice i duža putovanja.",
+    image: "https://rentacar55.vercel.app/assets/reno%20senik-DsEQFMuV.jpg",
+    price: 39.99,
+    seats: 5,
+    transmission: "Automatik",
+    fuel: "Dizel",
+  },
+  {
+    id: "opel-corsa",
+    name: "Opel Corsa",
+    description: "Kompaktno gradsko vozilo sa modernim karakteristikama.",
+    image: "https://rentacar55.vercel.app/assets/opel%20corsa-BAvoBfq_.jpg",
+    price: 24.99,
+    seats: 5,
+    transmission: "Manuelni",
+    fuel: "Dizel",
+  },
+  {
+    id: "renault-megane",
+    name: "Renault Megane",
+    description: "Luksuzni sedan za ugodnu i pouzdanu vožnju.",
+    image: "https://rentacar55.vercel.app/assets/reno%20megan-Bmsetyz0.jpg",
+    price: 39.99,
+    seats: 5,
+    transmission: "Manuelni",
+    fuel: "Dizel",
+  },
+  {
+    id: "citroen-c4-picasso",
+    name: "Citroen C4 Picasso",
+    description: "Prostran i elegantan, idealan za porodice.",
+    image: "https://rentacar55.vercel.app/assets/citroen%20picasso-yb_XW1Qh.jpg",
+    price: 49.99,
+    seats: 5,
+    transmission: "Automatik",
+    fuel: "Dizel",
+  },
+  {
+    id: "seat-toledo",
+    name: "Seat Toledo",
+    description: "Pouzdano vozilo s naglaskom na stabilnost i komfor.",
+    image: "https://rentacar55.vercel.app/assets/Seat%20Toledo-DP48vpVh.jpg",
+    price: 39.99,
+    seats: 5,
+    transmission: "Manuelni",
+    fuel: "Dizel",
+  },
+  {
+    id: "volkswagen-touran",
+    name: "Volkswagen Touran",
+    description: "Prostrani minivan za sigurnu vožnju u grupi.",
+    image: "https://rentacar55.vercel.app/assets/vw%20touran-BztvySZQ.jpg",
+    price: 29.99,
+    seats: 5,
+    transmission: "Manuelni",
+    fuel: "Dizel",
+  },
+  {
+    id: "ford-c-max",
+    name: "Ford C-Max",
+    description: "Vozilo s odličnom voznom dinamikom za svaki dan.",
+    image: "https://rentacar55.vercel.app/assets/CMAX-BhGBpt-x.jpg",
+    price: 29.99,
+    seats: 5,
+    transmission: "Manuelni",
+    fuel: "Dizel",
+  },
+  {
+    id: "golf-5-plus",
+    name: "Golf 5 plus",
+    description: "Popularan model s odličnim omjerom cijene i vrijednosti.",
+    image: "https://rentacar55.vercel.app/assets/golf5plus-BaIQdCXm.jpg",
+    price: 24.99,
+    seats: 5,
+    transmission: "Manuelni",
+    fuel: "Dizel",
+  },
+  {
+    id: "seat-ibiza",
+    name: "Seat Ibiza",
+    description: "Kompaktan automobil za lagodne gradske vožnje.",
+    image: "https://rentacar55.vercel.app/assets/seat%20ibiza-WETTV_b5.jpg",
+    price: 24.99,
+    seats: 5,
+    transmission: "Manuelni",
+    fuel: "Dizel",
+  },
+];
