@@ -40,6 +40,7 @@ export default function Home() {
   const [availability, setAvailability] = useState<AvailabilityRow[]>([]);
   const [showTop, setShowTop] = useState(false);
   const [showBookedWarning, setShowBookedWarning] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; exiting: boolean } | null>(null);
 
   useEffect(() => {
     supabase.rpc("get_availability").then(({ data }) => {
@@ -80,6 +81,12 @@ export default function Home() {
   }, [fromDate, toDate]);
 
   const today = new Date().toISOString().split("T")[0];
+
+  const showToast = (msg: string) => {
+    setToast({ msg, exiting: false });
+    setTimeout(() => setToast((t) => t ? { ...t, exiting: true } : null), 3500);
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const refreshAvailability = () =>
     supabase.rpc("get_availability").then(({ data }) => {
@@ -165,6 +172,7 @@ export default function Home() {
 
     setStatus("Rezervacija je uspješno poslana! Kontaktiraćemo vas uskoro.");
     setFullName(""); setEmail(""); setPhone(""); setMessage("");
+    showToast(`✓ Uspješno ste rezervisali ${selectedCar.name}!`);
     setShowBookedWarning(false);
     setTimeout(() => setShowBookedWarning(true), 5000);
   };
@@ -178,6 +186,20 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white">
+
+      {/* ── Toast ── */}
+      {toast && (
+        <div className={`fixed top-6 left-1/2 z-[100] -translate-x-1/2 ${toast.exiting ? "toast-exit" : "toast-enter"}`}>
+          <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-zinc-900 px-5 py-3.5 shadow-2xl shadow-black/60 backdrop-blur-sm">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <p className="text-sm font-semibold text-white">{toast.msg}</p>
+          </div>
+        </div>
+      )}
 
       {/* ── Navbar ── */}
       <nav id="main-nav" className="fixed inset-x-0 top-0 z-50 border-b border-zinc-900 bg-black/95 backdrop-blur-md transition-all duration-300">
