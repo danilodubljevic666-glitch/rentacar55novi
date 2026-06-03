@@ -146,6 +146,22 @@ export default function Home() {
       return;
     }
     await refreshAvailability();
+
+    // Pošalji email notifikaciju vlasniku (fire-and-forget)
+    fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        carName: selectedCar.name,
+        fullName,
+        email,
+        phone,
+        fromDate,
+        toDate,
+        message,
+      }),
+    }).catch(() => {});
+
     setStatus("Rezervacija je uspješno poslana! Kontaktiraćemo vas uskoro.");
     setFullName(""); setEmail(""); setPhone("");
     setFromDate(""); setToDate(""); setMessage("");
