@@ -345,8 +345,11 @@ export default function Home() {
               const taken = unavailableUntil(car.id);
               const unavailable = fromDate && toDate ? isCarUnavailable(car.id) : false;
               const delay = `d${(idx % 6) + 1}`;
+              const bookedUntil = taken
+                ? new Date(taken).toLocaleDateString("sr-Latn-ME", { day: "2-digit", month: "long", year: "numeric" })
+                : null;
               return (
-                  <article key={car.id} className={`car-card reveal ${delay} group relative overflow-hidden rounded-2xl bg-black ring-1 ${unavailable ? "ring-red-500/30" : "ring-zinc-800 hover:ring-amber-500/50"}`}>
+                  <article key={car.id} className={`car-card reveal ${delay} group relative overflow-hidden rounded-2xl bg-black ring-1 ${bookedUntil ? "ring-red-500/30" : "ring-zinc-800 hover:ring-amber-500/50"}`}>
                     <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                     <div className="relative h-52 overflow-hidden bg-zinc-950 sm:h-64">
@@ -355,23 +358,21 @@ export default function Home() {
                         alt={car.name}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                        className={`object-cover transition duration-500 group-hover:scale-105 ${unavailable ? "opacity-50 grayscale" : ""}`}
+                        className={`object-cover transition duration-500 group-hover:scale-105 ${bookedUntil ? "opacity-40 grayscale" : ""}`}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
-                      {/* Zauzeto overlay */}
-                      {unavailable && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                          <span className="rounded-full bg-red-500/90 px-4 py-1.5 text-sm font-bold text-white">
-                            Zauzeto
-                          </span>
+                      {bookedUntil ? (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/75 backdrop-blur-[2px]">
+                          <span className="text-xs font-semibold uppercase tracking-widest text-red-400">Rezervisano</span>
+                          <span className="text-sm font-bold text-white">do {bookedUntil}</span>
                         </div>
-                      )}
-
-                      {!unavailable && (
-                        <div className="absolute bottom-3 right-3 rounded-full bg-amber-500 px-3 py-1 text-xs font-bold text-black">
-                          {car.price.toFixed(0)}€/dan
-                        </div>
+                      ) : (
+                        <>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                          <div className="absolute bottom-3 right-3 rounded-full bg-amber-500 px-3 py-1 text-xs font-bold text-black">
+                            {car.price.toFixed(0)}€/dan
+                          </div>
+                        </>
                       )}
                     </div>
 
