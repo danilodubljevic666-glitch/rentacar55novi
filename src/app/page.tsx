@@ -39,6 +39,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [availability, setAvailability] = useState<AvailabilityRow[]>([]);
   const [showTop, setShowTop] = useState(false);
+  const [showBookedWarning, setShowBookedWarning] = useState(false);
 
   useEffect(() => {
     supabase.rpc("get_availability").then(({ data }) => {
@@ -163,8 +164,9 @@ export default function Home() {
     }).catch(() => {});
 
     setStatus("Rezervacija je uspješno poslana! Kontaktiraćemo vas uskoro.");
-    setFullName(""); setEmail(""); setPhone("");
-    setFromDate(""); setToDate(""); setMessage("");
+    setFullName(""); setEmail(""); setPhone(""); setMessage("");
+    setShowBookedWarning(false);
+    setTimeout(() => setShowBookedWarning(true), 5000);
   };
 
   const navLinks = [
@@ -455,15 +457,15 @@ export default function Home() {
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wider text-amber-500">Datum od</span>
-                  <input type="date" value={fromDate} min={today} onChange={(e) => { setFromDate(e.target.value); setStatus(""); }} className={inputClass} required />
+                  <input type="date" value={fromDate} min={today} onChange={(e) => { setFromDate(e.target.value); setStatus(""); setShowBookedWarning(false); }} className={inputClass} required />
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wider text-amber-500">Datum do</span>
-                  <input type="date" value={toDate} min={fromDate || today} onChange={(e) => { setToDate(e.target.value); setStatus(""); }} className={inputClass} required />
+                  <input type="date" value={toDate} min={fromDate || today} onChange={(e) => { setToDate(e.target.value); setStatus(""); setShowBookedWarning(false); }} className={inputClass} required />
                 </label>
 
                 {/* Zauzeti periodi za izabrani auto */}
-                {selectedCarPeriods.length > 0 && fromDate && (
+                {selectedCarPeriods.length > 0 && fromDate && (showBookedWarning || isCarUnavailable(carId)) && (
                   <div className="sm:col-span-2 rounded-xl border border-red-500/20 bg-red-500/5 p-3">
                     <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-400">
                       Zauzeti termini — {selectedCar.name}
