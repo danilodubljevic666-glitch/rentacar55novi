@@ -463,7 +463,7 @@ export default function Home() {
                 </label>
 
                 {/* Zauzeti periodi za izabrani auto */}
-                {selectedCarPeriods.length > 0 && (
+                {selectedCarPeriods.length > 0 && fromDate && (
                   <div className="sm:col-span-2 rounded-xl border border-red-500/20 bg-red-500/5 p-3">
                     <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-400">
                       Zauzeti termini — {selectedCar.name}
