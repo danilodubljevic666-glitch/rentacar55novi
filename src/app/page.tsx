@@ -5,6 +5,25 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { cars } from "../lib/cars";
 import { supabase, type AvailabilityRow } from "../lib/supabase";
 
+function CountUp({ to, suffix = "", duration = 3000 }: { to: number; suffix?: string; duration?: number }) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    let start: number | null = null;
+    let raf: number;
+    const step = (ts: number) => {
+      if (!start) start = ts;
+      const progress = Math.min((ts - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setVal(Math.floor(eased * to));
+      if (progress < 1) raf = requestAnimationFrame(step);
+      else setVal(to);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [to, duration]);
+  return <>{val}{suffix}</>;
+}
+
 const inputClass =
   "mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/15 sm:mt-2.5";
 
@@ -19,11 +38,33 @@ export default function Home() {
   const [status, setStatus] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [availability, setAvailability] = useState<AvailabilityRow[]>([]);
+  const [showTop, setShowTop] = useState(false);
 
   useEffect(() => {
     supabase.rpc("get_availability").then(({ data }) => {
       if (data) setAvailability(data as AvailabilityRow[]);
     });
+  }, []);
+
+  // Scroll reveal
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("visible"); }),
+      { threshold: 0.12 },
+    );
+    document.querySelectorAll(".reveal,.reveal-left,.reveal-right,.reveal-scale").forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  // Scroll-to-top visibility + navbar shrink
+  useEffect(() => {
+    const onScroll = () => {
+      setShowTop(window.scrollY > 500);
+      const nav = document.getElementById("main-nav");
+      if (nav) nav.classList.toggle("nav-scrolled", window.scrollY > 60);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const selectedCar = useMemo(
@@ -37,6 +78,13 @@ export default function Home() {
     return Math.max(0, Math.ceil(diff / 86_400_000));
   }, [fromDate, toDate]);
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const refreshAvailability = () =>
+    supabase.rpc("get_availability").then(({ data }) => {
+      if (data) setAvailability(data as AvailabilityRow[]);
+    });
+
   const isCarUnavailable = (id: string) => {
     if (!fromDate || !toDate) return false;
     return availability.some(
@@ -45,12 +93,19 @@ export default function Home() {
   };
 
   const unavailableUntil = (id: string): string | null => {
-    const today = new Date().toISOString().split("T")[0];
     const hits = availability
       .filter((r) => r.car_id === id && r.to_date >= today)
       .sort((a, b) => a.from_date.localeCompare(b.from_date));
     return hits[0]?.to_date ?? null;
   };
+
+  // Zauzetι periodi za izabrani auto (u formi)
+  const selectedCarPeriods = availability
+    .filter((r) => r.car_id === carId && r.to_date >= today)
+    .sort((a, b) => a.from_date.localeCompare(b.from_date));
+
+  const fmtDate = (d: string) =>
+    new Date(d).toLocaleDateString("sr-Latn-ME", { day: "2-digit", month: "short", year: "numeric" });
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -58,8 +113,14 @@ export default function Home() {
       setStatus("Molimo popunite sva obavezna polja.");
       return;
     }
+    if (fromDate >= toDate) {
+      setStatus("Datum vraćanja mora biti poslije datuma preuzimanja.");
+      return;
+    }
+    // Osvježi podatke neposredno prije slanja
+    await refreshAvailability();
     if (isCarUnavailable(carId)) {
-      setStatus("Izabrani auto je zauzet u odabranom periodu. Molimo izaberite drugi termin.");
+      setStatus("Auto je već rezervisan u odabranom periodu. Izaberite druge datume.");
       return;
     }
     setStatus("Šaljem...");
@@ -75,13 +136,16 @@ export default function Home() {
     });
     if (error) {
       console.error("Supabase insert error:", error);
-      setStatus(`Greška: ${error.message}`);
+      // Trigger exception = auto already booked (race condition)
+      if (error.message?.includes("auto_zauzet") || error.code === "P0001") {
+        setStatus("Auto je već rezervisan u tom periodu. Molimo izaberite druge datume.");
+      } else {
+        setStatus(`Greška: ${error.message}`);
+      }
+      await refreshAvailability();
       return;
     }
-    // Refresh availability
-    supabase.rpc("get_availability").then(({ data }) => {
-      if (data) setAvailability(data as AvailabilityRow[]);
-    });
+    await refreshAvailability();
     setStatus("Rezervacija je uspješno poslana! Kontaktiraćemo vas uskoro.");
     setFullName(""); setEmail(""); setPhone("");
     setFromDate(""); setToDate(""); setMessage("");
@@ -98,7 +162,7 @@ export default function Home() {
     <main className="min-h-screen bg-black text-white">
 
       {/* ── Navbar ── */}
-      <nav className="fixed inset-x-0 top-0 z-50 border-b border-zinc-900 bg-black/95 backdrop-blur-md">
+      <nav id="main-nav" className="fixed inset-x-0 top-0 z-50 border-b border-zinc-900 bg-black/95 backdrop-blur-md transition-all duration-300">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 sm:px-8 sm:py-4">
           <div className="flex items-center gap-3">
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-zinc-900 sm:h-12 sm:w-12 sm:rounded-2xl">
@@ -148,33 +212,39 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/40" />
         <div className="relative flex h-full flex-col px-5 pt-20 sm:px-8 sm:pt-24 lg:px-20">
           <div className="flex flex-1 flex-col justify-center gap-5 max-w-2xl sm:gap-7 lg:gap-8">
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 backdrop-blur-sm sm:px-4 sm:py-1.5">
+            <div className="hero-badge inline-flex w-fit items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 backdrop-blur-sm sm:px-4 sm:py-1.5">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400 sm:h-2 sm:w-2" />
               <span className="text-xs font-medium uppercase tracking-widest text-amber-300 sm:text-sm">Nikšić · Crna Gora</span>
             </div>
             <div>
-              <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl">Vozite u stilu.</h1>
-              <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-amber-400 sm:text-5xl lg:text-6xl xl:text-7xl">Rent a Car 55.</h1>
+              <h1 className="hero-t1 text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl">Vozite u stilu.</h1>
+              <h1 className="hero-t2 text-4xl font-bold leading-[1.05] tracking-tight text-amber-400 sm:text-5xl lg:text-6xl xl:text-7xl">Rent a Car 55.</h1>
             </div>
-            <p className="max-w-lg text-base leading-relaxed text-zinc-300 sm:text-lg">
+            <p className="hero-desc max-w-lg text-base leading-relaxed text-zinc-300 sm:text-lg">
               Širok izbor vozila u Nikšiću po pristupačnim cijenama. Brza rezervacija, fleksibilno preuzimanje i podrška 24/7.
             </p>
-            <div className="flex items-center gap-5 sm:gap-8">
-              {[["15+", "Vozila"], ["24/7", "Podrška"], ["5★", "Ocjena"]].map(([val, lbl], i) => (
+            <div className="hero-stats flex items-center gap-5 sm:gap-8">
+              {([
+                { to: 15, suffix: "+",  label: "Vozila"  },
+                { to: 24, suffix: "/7", label: "Podrška" },
+                { to: 5,  suffix: "★",  label: "Ocjena"  },
+              ] as const).map((stat, i) => (
                 <div key={i} className="flex items-center gap-5 sm:gap-8">
                   {i > 0 && <div className="h-8 w-px bg-zinc-700 sm:h-10" />}
-                  <div>
-                    <p className="text-2xl font-bold text-white sm:text-3xl">{val}</p>
-                    <p className="mt-0.5 text-xs tracking-wide text-zinc-500 sm:mt-1 sm:text-sm">{lbl}</p>
+                  <div className="group cursor-default">
+                    <p className="text-2xl font-bold text-white transition-colors duration-300 group-hover:text-amber-400 sm:text-3xl">
+                      <CountUp to={stat.to} suffix={stat.suffix} duration={3000} />
+                    </p>
+                    <p className="mt-0.5 text-xs tracking-wide text-zinc-500 sm:mt-1 sm:text-sm">{stat.label}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-              <a href="#reservation" className="inline-flex items-center justify-center rounded-full bg-amber-500 px-7 py-3.5 text-sm font-semibold text-black shadow-lg shadow-amber-500/25 transition hover:bg-amber-400 sm:px-8 sm:py-4 sm:text-base">
+            <div className="hero-btns flex flex-col gap-3 sm:flex-row sm:gap-4">
+              <a href="#reservation" className="inline-flex items-center justify-center rounded-full bg-amber-500 px-7 py-3.5 text-sm font-semibold text-black shadow-lg shadow-amber-500/25 transition-all duration-300 hover:bg-amber-400 hover:scale-105 hover:shadow-amber-500/40 sm:px-8 sm:py-4 sm:text-base">
                 Rezerviši odmah
               </a>
-              <a href="#cars" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-7 py-3.5 text-sm text-white backdrop-blur-sm transition hover:border-amber-400/50 hover:text-amber-300 sm:px-8 sm:py-4 sm:text-base">
+              <a href="#cars" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-7 py-3.5 text-sm text-white backdrop-blur-sm transition-all duration-300 hover:border-amber-400/50 hover:text-amber-300 hover:gap-3 sm:px-8 sm:py-4 sm:text-base">
                 Pogledaj vozila →
               </a>
             </div>
@@ -185,8 +255,8 @@ export default function Home() {
       {/* ── Why us ── */}
       <section className="bg-black py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
-          <div className="mb-12 text-center sm:mb-16">
-            <span className="inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.3em] text-amber-400">
+          <div className="reveal mb-12 text-center sm:mb-16">
+            <span className="shimmer-text inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.3em]">
               Naše prednosti
             </span>
             <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl lg:text-4xl">
@@ -226,9 +296,9 @@ export default function Home() {
                   </svg>
                 ),
               },
-            ].map((item) => (
-              <div key={item.title} className="group rounded-2xl border border-zinc-800 bg-zinc-950 p-6 transition hover:border-amber-500/40 hover:bg-zinc-900 sm:rounded-3xl sm:p-8">
-                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 transition group-hover:bg-amber-500/20">
+            ].map((item, i) => (
+              <div key={item.title} className={`why-card reveal relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-6 transition-all duration-300 hover:border-amber-500/40 hover:bg-zinc-900 hover:-translate-y-1 sm:rounded-3xl sm:p-8 d${i + 1}`}>
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 transition-all duration-300 group-hover:bg-amber-500/20 group-hover:scale-110">
                   {item.icon}
                 </div>
                 <h3 className="mb-3 text-lg font-semibold text-white">{item.title}</h3>
@@ -242,9 +312,9 @@ export default function Home() {
       {/* ── Cars ── */}
       <section id="cars" className="bg-zinc-950 py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
-          <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="reveal mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <span className="inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.3em] text-amber-400">
+              <span className="shimmer-text inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.3em]">
                 Naša vozila
               </span>
               <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl lg:text-4xl">Izaberite svoje vozilo</h2>
@@ -255,11 +325,12 @@ export default function Home() {
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
-            {cars.map((car) => {
+            {cars.map((car, idx) => {
               const taken = unavailableUntil(car.id);
               const unavailable = fromDate && toDate ? isCarUnavailable(car.id) : false;
+              const delay = `d${(idx % 6) + 1}`;
               return (
-                  <article key={car.id} className={`group relative overflow-hidden rounded-2xl bg-black ring-1 transition duration-300 ${unavailable ? "ring-red-500/30" : "ring-zinc-800 hover:ring-amber-500/50"}`}>
+                  <article key={car.id} className={`car-card reveal ${delay} group relative overflow-hidden rounded-2xl bg-black ring-1 ${unavailable ? "ring-red-500/30" : "ring-zinc-800 hover:ring-amber-500/50"}`}>
                     <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                     <div className="relative h-52 overflow-hidden bg-zinc-950 sm:h-64">
@@ -333,8 +404,8 @@ export default function Home() {
       {/* ── Reservation ── */}
       <section id="reservation" className="bg-black py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
-          <div className="mb-12 text-center">
-            <span className="inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.3em] text-amber-400">
+          <div className="reveal mb-12 text-center">
+            <span className="shimmer-text inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.3em]">
               Rezervacija
             </span>
             <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl lg:text-4xl">Rezervišite vozilo danas</h2>
@@ -345,7 +416,7 @@ export default function Home() {
 
           <div className="grid gap-6 lg:grid-cols-[1fr_360px] lg:gap-8 xl:grid-cols-[1fr_400px]">
             {/* Form */}
-            <form id="reservation-form" onSubmit={handleSubmit} className="rounded-2xl bg-zinc-950 p-5 ring-1 ring-zinc-800 sm:p-8">
+            <form id="reservation-form" onSubmit={handleSubmit} className="reveal-left rounded-2xl bg-zinc-950 p-5 ring-1 ring-zinc-800 sm:p-8">
               <div className="grid gap-5 sm:grid-cols-2">
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wider text-amber-500">Ime i prezime</span>
@@ -361,18 +432,35 @@ export default function Home() {
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wider text-amber-500">Vozilo</span>
-                  <select value={carId} onChange={(e) => setCarId(e.target.value)} className={inputClass}>
+                  <select value={carId} onChange={(e) => { setCarId(e.target.value); setStatus(""); refreshAvailability(); }} className={inputClass}>
                     {cars.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wider text-amber-500">Datum od</span>
-                  <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className={inputClass} required />
+                  <input type="date" value={fromDate} min={today} onChange={(e) => { setFromDate(e.target.value); setStatus(""); }} className={inputClass} required />
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wider text-amber-500">Datum do</span>
-                  <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className={inputClass} required />
+                  <input type="date" value={toDate} min={fromDate || today} onChange={(e) => { setToDate(e.target.value); setStatus(""); }} className={inputClass} required />
                 </label>
+
+                {/* Zauzeti periodi za izabrani auto */}
+                {selectedCarPeriods.length > 0 && (
+                  <div className="sm:col-span-2 rounded-xl border border-red-500/20 bg-red-500/5 p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-400">
+                      Zauzeti termini — {selectedCar.name}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCarPeriods.map((r, i) => (
+                        <span key={i} className="rounded-lg bg-zinc-900 px-2.5 py-1 text-xs text-zinc-400">
+                          {fmtDate(r.from_date)} → {fmtDate(r.to_date)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <label className="sm:col-span-2">
                   <span className="text-xs font-semibold uppercase tracking-wider text-amber-500">Poruka / zahtjev</span>
                   <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={4} className={inputClass} placeholder="Dodatni zahtjevi, lokacija preuzimanja..." />
@@ -387,7 +475,7 @@ export default function Home() {
             </form>
 
             {/* Summary card */}
-            <div className="flex flex-col gap-5">
+            <div className="reveal-right flex flex-col gap-5">
               <div className="rounded-2xl bg-zinc-950 p-5 ring-1 ring-zinc-800 sm:p-6">
                 <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-amber-500">Izabrano vozilo</p>
                 <div className="relative mb-4 h-40 overflow-hidden rounded-xl bg-zinc-900">
@@ -438,8 +526,8 @@ export default function Home() {
       <section id="location" className="bg-zinc-950 py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-lg">
-              <span className="inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.3em] text-amber-400">
+            <div className="reveal-left max-w-lg">
+              <span className="shimmer-text inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1 text-xs font-medium uppercase tracking-[0.3em]">
                 Lokacija
               </span>
               <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl lg:text-4xl">Posjetite nas u Nikšiću</h2>
@@ -447,12 +535,12 @@ export default function Home() {
                 Rent a Car 55 posluje u samom srcu Nikšića. Vozila preuzimate pri dolasku, a naš tim je spreman da vam pomogne u svakom trenutku.
               </p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:shrink-0">
+            <div className="reveal-right grid gap-4 sm:grid-cols-2 lg:shrink-0">
               {[
                 { label: "Adresa", val: "Nikšić, Crna Gora", sub: "Preuzimanje pri dolasku" },
                 { label: "Radno vrijeme", val: "24/7 — Non-stop", sub: "Uvijek dostupni" },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl bg-black p-5 ring-1 ring-zinc-800 sm:p-6">
+              ].map((item, i) => (
+                <div key={item.label} className={`reveal-scale rounded-2xl bg-black p-5 ring-1 ring-zinc-800 transition-all duration-300 hover:ring-amber-500/30 sm:p-6 d${i + 1}`}>
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-500">{item.label}</p>
                   <p className="font-semibold text-white">{item.val}</p>
                   <p className="mt-1 text-xs text-zinc-600">{item.sub}</p>
@@ -477,12 +565,23 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Scroll to top ── */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        aria-label="Nazad na vrh"
+        className={`scroll-top fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500 text-black shadow-xl shadow-amber-500/30 ${showTop ? "" : "hidden-btn"}`}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+        </svg>
+      </button>
+
       {/* ── Footer ── */}
       <footer className="border-t border-zinc-900 bg-black">
         <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16 lg:px-12">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
             {/* Brand */}
-            <div className="lg:col-span-2">
+            <div className="reveal d1 lg:col-span-2">
               <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-zinc-900">
                   <Image src="/logo.jpg" alt="Rent a car 55" fill sizes="48px" className="object-cover" />
@@ -499,7 +598,7 @@ export default function Home() {
             </div>
 
             {/* Links */}
-            <div>
+            <div className="reveal d2">
               <p className="mb-5 text-xs font-semibold uppercase tracking-wider text-amber-500">Navigacija</p>
               <ul className="space-y-3 text-sm text-zinc-500">
                 {navLinks.map((l) => (
@@ -511,7 +610,7 @@ export default function Home() {
             </div>
 
             {/* Contact */}
-            <div>
+            <div className="reveal d3">
               <p className="mb-5 text-xs font-semibold uppercase tracking-wider text-amber-500">Kontakt</p>
               <ul className="space-y-3 text-sm text-zinc-500">
                 <li>Nikšić, Crna Gora</li>

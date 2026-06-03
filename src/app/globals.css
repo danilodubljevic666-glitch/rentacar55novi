@@ -20,30 +20,179 @@
   --font-mono: var(--font-geist-mono);
 }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   min-height: 100vh;
-  background: radial-gradient(circle at top, rgba(248, 183, 3, 0.12), transparent 28%),
-    radial-gradient(circle at 20% 0%, rgba(14, 165, 233, 0.08), transparent 26%),
+  background: radial-gradient(circle at top, rgba(248,183,3,0.12), transparent 28%),
+    radial-gradient(circle at 20% 0%, rgba(14,165,233,0.08), transparent 26%),
     var(--background);
   color: var(--text);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+button, input, textarea, select { font: inherit; }
+::selection { background: rgba(248,183,3,0.3); }
+
+/* ════════════════════════════════════════
+   KEYFRAMES
+════════════════════════════════════════ */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeLeft {
+  from { opacity: 0; transform: translateX(-48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeRight {
+  from { opacity: 0; transform: translateX(48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+@keyframes pulseBorder {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
+}
+@keyframes slideInTop {
+  from { opacity: 0; transform: translateY(-100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes bounceIn {
+  0%   { opacity: 0; transform: scale(0.3) translateY(20px); }
+  50%  { transform: scale(1.08); }
+  70%  { transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes shimmerGold {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
+/* ════════════════════════════════════════
+   HERO — plays on page load
+════════════════════════════════════════ */
+.hero-badge  { animation: fadeDown 0.7s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
+.hero-t1     { animation: fadeLeft 0.9s cubic-bezier(0.16,1,0.3,1) 0.30s both; }
+.hero-t2     { animation: fadeLeft 0.9s cubic-bezier(0.16,1,0.3,1) 0.48s both; }
+.hero-desc   { animation: fadeUp  0.8s cubic-bezier(0.16,1,0.3,1) 0.65s both; }
+.hero-stats  { animation: fadeUp  0.8s cubic-bezier(0.16,1,0.3,1) 0.80s both; }
+.hero-btns   { animation: fadeUp  0.8s cubic-bezier(0.16,1,0.3,1) 0.95s both; }
+
+/* floating badge dot */
+.hero-badge span:first-child { animation: float 3s ease-in-out infinite; }
+
+/* ════════════════════════════════════════
+   SCROLL REVEAL
+════════════════════════════════════════ */
+.reveal,
+.reveal-left,
+.reveal-right,
+.reveal-scale {
+  transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1),
+              transform 0.8s cubic-bezier(0.16,1,0.3,1);
+  will-change: opacity, transform;
+}
+.reveal        { opacity: 0; transform: translateY(48px); }
+.reveal-left   { opacity: 0; transform: translateX(-56px); }
+.reveal-right  { opacity: 0; transform: translateX(56px); }
+.reveal-scale  { opacity: 0; transform: scale(0.88); }
+
+.reveal.visible,
+.reveal-left.visible,
+.reveal-right.visible,
+.reveal-scale.visible { opacity: 1; transform: none; }
+
+/* stagger delays */
+.d1 { transition-delay: 0.08s; }
+.d2 { transition-delay: 0.16s; }
+.d3 { transition-delay: 0.24s; }
+.d4 { transition-delay: 0.32s; }
+.d5 { transition-delay: 0.40s; }
+.d6 { transition-delay: 0.48s; }
+.d7 { transition-delay: 0.56s; }
+.d8 { transition-delay: 0.64s; }
+.d9 { transition-delay: 0.72s; }
+.d10 { transition-delay: 0.80s; }
+.d11 { transition-delay: 0.88s; }
+.d12 { transition-delay: 0.96s; }
+
+/* ════════════════════════════════════════
+   NAVBAR scroll shrink
+════════════════════════════════════════ */
+.nav-scrolled {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  background: rgba(0,0,0,0.98) !important;
 }
 
-::selection {
-  background: rgba(248, 183, 3, 0.3);
+/* ════════════════════════════════════════
+   SHIMMER TEXT (section labels)
+════════════════════════════════════════ */
+.shimmer-text {
+  background: linear-gradient(90deg, #f59e0b 0%, #fcd34d 40%, #f59e0b 60%, #b45309 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmerGold 3s linear infinite;
 }
+
+/* ════════════════════════════════════════
+   CAR CARD extra hover
+════════════════════════════════════════ */
+.car-card {
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),
+              box-shadow 0.35s ease;
+}
+.car-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,158,11,0.3);
+}
+
+/* ════════════════════════════════════════
+   SCROLL-TO-TOP BUTTON
+════════════════════════════════════════ */
+.scroll-top {
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  animation: pulseBorder 2.5s ease-in-out infinite;
+}
+.scroll-top.hidden-btn {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+.scroll-top:hover {
+  animation: none;
+  transform: translateY(-3px) scale(1.08) !important;
+}
+
+/* ════════════════════════════════════════
+   WHY-US card line animation
+════════════════════════════════════════ */
+.why-card::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+  transform: scaleX(0);
+  transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.why-card:hover::before { transform: scaleX(1); }

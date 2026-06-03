@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "Rent a car 55",
   description:
     "Rent a car 55 - premium vozila, rezervacije i admin panel za upravljanje rezervacijama.",
+  icons: {
+    icon: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
 };
 
 export default function RootLayout({

@@ -79,6 +79,14 @@ export default function AdminPage() {
     setUpdating(null);
   };
 
+  const deleteReservation = async (id: string) => {
+    if (!confirm("Sigurno želiš izbrisati ovu rezervaciju?")) return;
+    setUpdating(id);
+    await supabase.from("reservations").delete().eq("id", id);
+    setReservations((prev) => prev.filter((r) => r.id !== id));
+    setUpdating(null);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.replace("/admin/login?k=rentacar55");
@@ -248,21 +256,32 @@ export default function AdminPage() {
                           </button>
                         )}
                         {r.status === "confirmed" && (
+                          <>
+                            <button
+                              onClick={() => updateStatus(r.id, "completed")}
+                              disabled={updating === r.id}
+                              className="rounded-xl bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-zinc-700 disabled:opacity-50"
+                            >
+                              Označi kao završeno
+                            </button>
+                            <button
+                              onClick={() => deleteReservation(r.id)}
+                              disabled={updating === r.id}
+                              className="rounded-xl bg-red-500/10 px-4 py-2 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                            >
+                              Izbriši
+                            </button>
+                          </>
+                        )}
+                        {r.status === "pending" && (
                           <button
-                            onClick={() => updateStatus(r.id, "completed")}
+                            onClick={() => updateStatus(r.id, "cancelled")}
                             disabled={updating === r.id}
-                            className="rounded-xl bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-zinc-700 disabled:opacity-50"
+                            className="rounded-xl bg-red-500/10 px-4 py-2 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
                           >
-                            Označi kao završeno
+                            Otkaži
                           </button>
                         )}
-                        <button
-                          onClick={() => updateStatus(r.id, "cancelled")}
-                          disabled={updating === r.id}
-                          className="rounded-xl bg-red-500/10 px-4 py-2 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
-                        >
-                          Otkaži
-                        </button>
                       </div>
                     )}
                   </div>
