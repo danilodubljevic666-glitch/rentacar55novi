@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
 
     <!-- CTA -->
     <div style="text-align:center;padding:8px 0 24px;">
-      <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://rentacar55.vercel.app"}/admin/login?k=rentacar55"
+      <a href="https://www.55rentacar.me/admin/login?k=rentacar55"
          style="display:inline-block;background:#f59e0b;color:#000000;font-weight:700;font-size:14px;padding:14px 32px;border-radius:999px;text-decoration:none;">
         Otvori Admin Panel →
       </a>
