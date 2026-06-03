@@ -105,7 +105,7 @@ const jsonLd = {
   logo: "https://www.55rentacar.me/logo.jpg",
   image: "https://www.55rentacar.me/logo.jpg",
   telephone: "+38268555555",
-  email: "info@55rentacar.me",
+  email: "rentacarposlovni55@gmail.com",
   address: {
     "@type": "PostalAddress",
     addressLocality: "Nikšić",

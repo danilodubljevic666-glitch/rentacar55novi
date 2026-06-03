@@ -436,11 +436,11 @@ export default function Home() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wider text-amber-500">Ime i prezime</span>
-                  <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} placeholder="Marko Vilotijević" required />
+                  <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} placeholder="Marko Marković" required />
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wider text-amber-500">Email</span>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="info@rentacar55.com" required />
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="rentacarposlovni55@gmail.com" required />
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wider text-amber-500">Telefon</span>
@@ -631,7 +631,7 @@ export default function Home() {
               <ul className="space-y-3 text-sm text-zinc-500">
                 <li>Nikšić, Crna Gora</li>
                 <li><a href="tel:068555555" className="text-white transition hover:text-amber-400">068 555 555</a></li>
-                <li>info@rentacar55.com</li>
+                <li>rentacarposlovni55@gmail.com</li>
               </ul>
             </div>
           </div>
